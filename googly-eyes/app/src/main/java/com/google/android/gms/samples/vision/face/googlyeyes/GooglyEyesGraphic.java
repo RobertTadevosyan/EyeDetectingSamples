@@ -15,15 +15,28 @@
  */
 package com.google.android.gms.samples.vision.face.googlyeyes;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Picture;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.os.Build;
+import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.samples.vision.face.googlyeyes.ui.camera.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Random;
 
 /**
@@ -52,6 +65,8 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
 
     private float leftOpenScore;
     private float rightOpenScore;
+    private GraphicOverlay overlay;
+    private Bitmap icon;
 
     //==============================================================================================
     // Methods
@@ -59,6 +74,10 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
 
     GooglyEyesGraphic(GraphicOverlay overlay) {
         super(overlay);
+        this.overlay = overlay;
+        icon = BitmapFactory.decodeResource(overlay.getContext().getResources(),
+                R.drawable.eye);
+//        icon = convertToMutable(icon);
 
         mEyeWhitesPaint = new Paint();
         int color = Color.argb(random.nextInt(255), random.nextInt(255), random.nextInt(255), random.nextInt(50) + 10);
@@ -106,6 +125,7 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
      * reported position from the tracker, and the iris positions according to the physics
      * simulations for each iris given motion and other forces.
      */
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void draw(Canvas canvas) {
         PointF detectLeftPosition = mLeftPosition;
@@ -140,6 +160,7 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
     /**
      * Draws the eye, either closed or open with the iris in the current position.
      */
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void drawEye(Canvas canvas, PointF eyePosition, float eyeRadius,
                          PointF irisPosition, float irisRadius, boolean isOpen, float probablyOpen) {
 
@@ -157,14 +178,23 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
             //          *
             //
 
+//            Picture picture = new Picture();
+
+
+//
+//            icon.setWidth((int) (eyeRadius * probablyOpen));
+//            icon.setHeight((int) (eyeRadius * probablyOpen));
+            Bitmap img = Bitmap.createScaledBitmap(icon, Integer.valueOf((int) (eyeRadius / 2)),Integer.valueOf((int) (eyeRadius / 2)),false);
+            canvas.drawBitmap(img, eyePosition.x - irisRadius/2, eyePosition.y - irisRadius / 2,mEyeWhitesPaint);
+
             canvas.drawCircle(eyePosition.x - irisRadius, eyePosition.y, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x, eyePosition.y - eyeRadius  * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x + irisRadius, eyePosition.y, eyeRadius * probablyOpen / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y + eyeRadius  * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x, eyePosition.y + eyeRadius  * probablyOpen * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
-            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y + eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x, eyePosition.y - eyeRadius  * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x + irisRadius, eyePosition.y, eyeRadius * probablyOpen / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y + eyeRadius  * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x, eyePosition.y + eyeRadius  * probablyOpen * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
+//            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y + eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
 
 //-----------------------------------------------------------------------------------------------
 //            for (int degree = 0; degree < 360; degree++){
@@ -194,5 +224,51 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
 //            canvas.drawLine(start, y, end, y, mEyeOutlinePaint);
         }
 //        canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius, mEyeOutlinePaint);
+    }
+
+    public static Bitmap convertToMutable(Bitmap imgIn) {
+        try {
+            //this is the file going to use temporally to save the bytes.
+            // This file will not be a image, it will store the raw image data.
+            File file = new File(Environment.getExternalStorageDirectory() + File.separator + "temp.tmp");
+
+            //Open an RandomAccessFile
+            //Make sure you have added uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            //into AndroidManifest.xml file
+            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+
+            // get the width and height of the source bitmap.
+            int width = imgIn.getWidth();
+            int height = imgIn.getHeight();
+            Bitmap.Config type = imgIn.getConfig();
+
+            //Copy the byte to the file
+            //Assume source bitmap loaded using options.inPreferredConfig = Config.ARGB_8888;
+            FileChannel channel = randomAccessFile.getChannel();
+            MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, imgIn.getRowBytes()*height);
+            imgIn.copyPixelsToBuffer(map);
+            //recycle the source bitmap, this will be no longer used.
+            imgIn.recycle();
+            System.gc();// try to force the bytes from the imgIn to be released
+
+            //Create a new bitmap to load the bitmap again. Probably the memory will be available.
+            imgIn = Bitmap.createBitmap(width, height, type);
+            map.position(0);
+            //load it back from temporary
+            imgIn.copyPixelsFromBuffer(map);
+            //close the temporary file and channel , then delete that also
+            channel.close();
+            randomAccessFile.close();
+
+            // delete the temp file
+            file.delete();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return imgIn;
     }
 }

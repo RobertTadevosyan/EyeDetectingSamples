@@ -24,14 +24,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -81,6 +87,8 @@ public final class GooglyEyesActivity extends AppCompatActivity {
 
     private boolean mIsFrontFacing = true;
 
+    private ImageView previewImageView;
+
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -98,6 +106,8 @@ public final class GooglyEyesActivity extends AppCompatActivity {
 
         final Button button = (Button) findViewById(R.id.flipButton);
         button.setOnClickListener(mFlipButtonListener);
+
+        previewImageView = (ImageView) findViewById(R.id.preview_image_view);
 
         if (savedInstanceState != null) {
             mIsFrontFacing = savedInstanceState.getBoolean("IsFrontFacing");
@@ -406,16 +416,27 @@ public final class GooglyEyesActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        previewImageView.setVisibility(View.GONE);
+        return super.onTouchEvent(event);
+    }
+
     public void takePictureActionPerformed(View view) {
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
             public void onShutter() {
-                Toast.makeText(GooglyEyesActivity.this, "onShutter", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(GooglyEyesActivity.this, "onShutter", Toast.LENGTH_SHORT).show();
             }
         }, new CameraSource.PictureCallback() {
+            @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
             @Override
             public void onPictureTaken(byte[] bytes) {
-                Toast.makeText(GooglyEyesActivity.this, "onPictureTaken", Toast.LENGTH_LONG).show();
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                previewImageView.setImageBitmap(bmp);
+                previewImageView.setRotation(90f);
+                previewImageView.setVisibility(View.VISIBLE);
+//                Toast.makeText(GooglyEyesActivity.this, "onPictureTaken", Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -20,6 +20,14 @@
 
   </com.google.android.gms.samples.vision.face.googlyeyes.ui.camera.CameraSourcePreview>
 
+  <ImageView
+      android:id="@+id/preview_image_view"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_centerInParent="true"
+      android:rotation="0"
+      android:visibility="gone"/>
+
   <Button
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
