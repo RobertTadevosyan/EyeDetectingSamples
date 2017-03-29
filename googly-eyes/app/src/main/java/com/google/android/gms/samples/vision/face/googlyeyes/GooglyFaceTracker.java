@@ -26,6 +26,7 @@ import com.google.android.gms.vision.face.Landmark;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * Tracks the eye positions and state over time, managing an underlying graphic which renders googly
  * eyes over the source video.<p>
@@ -51,6 +52,9 @@ class GooglyFaceTracker extends Tracker<Face> {
     // intermediate frames which lack eye landmarks and corresponding eye state.
     private boolean mPreviousIsLeftOpen = true;
     private boolean mPreviousIsRightOpen = true;
+
+    private float leftOpenScore;
+    private float rightOpenScore;
 
 
     //==============================================================================================
@@ -83,7 +87,7 @@ class GooglyFaceTracker extends Tracker<Face> {
         PointF leftPosition = getLandmarkPosition(face, Landmark.LEFT_EYE);
         PointF rightPosition = getLandmarkPosition(face, Landmark.RIGHT_EYE);
 
-        float leftOpenScore = face.getIsLeftEyeOpenProbability();
+        leftOpenScore = face.getIsLeftEyeOpenProbability();
         boolean isLeftOpen;
         if (leftOpenScore == Face.UNCOMPUTED_PROBABILITY) {
             isLeftOpen = mPreviousIsLeftOpen;
@@ -92,7 +96,7 @@ class GooglyFaceTracker extends Tracker<Face> {
             mPreviousIsLeftOpen = isLeftOpen;
         }
 
-        float rightOpenScore = face.getIsRightEyeOpenProbability();
+        rightOpenScore = face.getIsRightEyeOpenProbability();
         boolean isRightOpen;
         if (rightOpenScore == Face.UNCOMPUTED_PROBABILITY) {
             isRightOpen = mPreviousIsRightOpen;
@@ -101,7 +105,7 @@ class GooglyFaceTracker extends Tracker<Face> {
             mPreviousIsRightOpen = isRightOpen;
         }
 
-        mEyesGraphic.updateEyes(leftPosition, isLeftOpen, rightPosition, isRightOpen);
+        mEyesGraphic.updateEyes(leftPosition, isLeftOpen, rightPosition, isRightOpen, face);
     }
 
     /**
@@ -155,5 +159,13 @@ class GooglyFaceTracker extends Tracker<Face> {
         float x = face.getPosition().x + (prop.x * face.getWidth());
         float y = face.getPosition().y + (prop.y * face.getHeight());
         return new PointF(x, y);
+    }
+
+    public float getLeftOpenScore() {
+        return leftOpenScore;
+    }
+
+    public float getRightOpenScore() {
+        return rightOpenScore;
     }
 }

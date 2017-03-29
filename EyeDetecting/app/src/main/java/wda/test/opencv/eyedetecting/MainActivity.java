@@ -76,7 +76,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private int mDetectorType = JAVA_DETECTOR;
     private String[] mDetectorName;
 
-    private float mRelativeFaceSize = 0.2f;
+    private float mRelativeFaceSize = 0.1f;
     private int mAbsoluteFaceSize = 0;
 
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -464,9 +464,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         MatOfRect eyes = new MatOfRect();
         Point iris = new Point();
         Rect eye_template = new Rect();
-        clasificator.detectMultiScale(mROI, eyes, 1.15, 2,
+        clasificator.detectMultiScale(mROI, eyes, 2.15, 2,
                 Objdetect.CASCADE_FIND_BIGGEST_OBJECT
-                        | Objdetect.CASCADE_SCALE_IMAGE, new Size(30, 30),
+                        | Objdetect.CASCADE_SCALE_IMAGE, new Size(20, 20),
                 new Size());
 
         Rect[] eyesArray = eyes.toArray();
@@ -484,7 +484,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
             Core.MinMaxLocResult mmG = Core.minMaxLoc(mROI);
 
-            Imgproc.circle(vyrez, mmG.minLoc, 10, scalar, 15);
+            Imgproc.circle(vyrez, mmG.minLoc, 10, scalar, 5);
             iris.x = mmG.minLoc.x + eye_only_rectangle.x;
             iris.y = mmG.minLoc.y + eye_only_rectangle.y;
             eye_template = new Rect((int) iris.x - size / 2, (int) iris.y

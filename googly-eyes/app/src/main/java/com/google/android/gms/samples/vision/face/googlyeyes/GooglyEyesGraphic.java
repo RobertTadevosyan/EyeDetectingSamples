@@ -19,8 +19,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.samples.vision.face.googlyeyes.ui.camera.GraphicOverlay;
+import com.google.android.gms.vision.face.Face;
 
 import java.util.Random;
 
@@ -28,7 +30,7 @@ import java.util.Random;
  * Graphics class for rendering Googly Eyes on a graphic overlay given the current eye positions.
  */
 class GooglyEyesGraphic extends GraphicOverlay.Graphic {
-    private static final float EYE_RADIUS_PROPORTION = 0.45f;
+    private static final float EYE_RADIUS_PROPORTION = 0.40f;
     private static final float IRIS_RADIUS_PROPORTION = EYE_RADIUS_PROPORTION / 2.0f;
 
     private Paint mEyeWhitesPaint;
@@ -48,6 +50,9 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
 
     private Random random = new Random();
 
+    private float leftOpenScore;
+    private float rightOpenScore;
+
     //==============================================================================================
     // Methods
     //==============================================================================================
@@ -57,7 +62,7 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
 
         mEyeWhitesPaint = new Paint();
         int color = Color.argb(random.nextInt(255), random.nextInt(255), random.nextInt(255), random.nextInt(50) + 10);
-        mEyeWhitesPaint.setColor(color);
+        mEyeWhitesPaint.setColor(ContextCompat.getColor(overlay.getContext(), android.R.color.holo_blue_light));
         mEyeWhitesPaint.setStyle(Paint.Style.FILL);
 
         mEyeLidPaint = new Paint();
@@ -79,7 +84,7 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
      * the relevant portions of the overlay to trigger a redraw.
      */
     void updateEyes(PointF leftPosition, boolean leftOpen,
-                    PointF rightPosition, boolean rightOpen) {
+                    PointF rightPosition, boolean rightOpen, Face face) {
         mLeftPosition = leftPosition;
         mLeftOpen = leftOpen;
 
@@ -87,6 +92,13 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
         mRightOpen = rightOpen;
 
         postInvalidate();
+
+        leftOpenScore = face.getIsLeftEyeOpenProbability();
+        rightOpenScore = face.getIsRightEyeOpenProbability();
+//        System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------");
+//        System.out.println(face.getIsLeftEyeOpenProbability());
+//        System.out.println(face.getIsRightEyeOpenProbability());
+//        System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------");
     }
 
     /**
@@ -117,21 +129,62 @@ class GooglyEyesGraphic extends GraphicOverlay.Graphic {
         // Advance the current left iris position, and draw left eye.
         PointF leftIrisPosition =
                 mLeftPhysics.nextIrisPosition(leftPosition, eyeRadius, irisRadius);
-        drawEye(canvas, leftPosition, eyeRadius, leftIrisPosition, irisRadius, mLeftOpen);
+        drawEye(canvas, leftPosition, eyeRadius, leftIrisPosition, irisRadius, mLeftOpen, leftOpenScore);
 
         // Advance the current right iris position, and draw right eye.
         PointF rightIrisPosition =
                 mRightPhysics.nextIrisPosition(rightPosition, eyeRadius, irisRadius);
-        drawEye(canvas, rightPosition, eyeRadius, rightIrisPosition, irisRadius, mRightOpen);
+        drawEye(canvas, rightPosition, eyeRadius, rightIrisPosition, irisRadius, mRightOpen, rightOpenScore);
     }
 
     /**
      * Draws the eye, either closed or open with the iris in the current position.
      */
     private void drawEye(Canvas canvas, PointF eyePosition, float eyeRadius,
-                         PointF irisPosition, float irisRadius, boolean isOpen) {
+                         PointF irisPosition, float irisRadius, boolean isOpen, float probablyOpen) {
+
+//        float [] pointsX  = new float[360];
+//        float [] pointsY  = new float[360];
+//        float [] newArray = new float[pointsX.length*2];
         if (isOpen) {
-            canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius / 5, mEyeWhitesPaint);
+
+
+            //
+            //          *
+            //     *         *
+            // *                 *
+            //     *         *
+            //          *
+            //
+
+            canvas.drawCircle(eyePosition.x - irisRadius, eyePosition.y, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x, eyePosition.y - eyeRadius  * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y - eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x + irisRadius, eyePosition.y, eyeRadius * probablyOpen / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x + irisRadius / 2, eyePosition.y + eyeRadius  * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x, eyePosition.y + eyeRadius  * probablyOpen * probablyOpen / 5, eyeRadius / 20, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x - irisRadius / 2, eyePosition.y + eyeRadius * probablyOpen / 10, eyeRadius / 20, mEyeWhitesPaint);
+
+//-----------------------------------------------------------------------------------------------
+//            for (int degree = 0; degree < 360; degree++){
+//                float radians = (float) (degree * Math.PI/180);
+//                float x = (float) (eyePosition.x + eyeRadius * Math.cos(radians));
+//                float y = (float) (eyePosition.y + eyeRadius * Math.sin(radians));
+//                pointsX[degree] = x;
+//                pointsY[degree] = y;
+//
+//                int k = 0;
+//                for (int i = 0;i<pointsX.length; ++i) {
+//                    newArray[k] = pointsX[i];
+//                    k++;
+//                    newArray[k] = pointsY[i];
+//                    k++;
+//                }
+//                canvas.drawLines(newArray, mEyeWhitesPaint);
+//                System.out.println(pointsX[degree]);
+//            }
+// ----------------------------------------------------------------------------------------------
 //            canvas.drawCircle(irisPosition.x, irisPosition.y, irisRadius, mEyeIrisPaint);
         } else {
 //            canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius, mEyeLidPaint);

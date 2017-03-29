@@ -52,15 +52,15 @@ import java.io.IOException;
  * Activity for Googly Eyes, an app that uses the camera to track faces and superimpose Googly Eyes
  * animated graphics over the eyes.  The app also detects whether the eyes are open or closed,
  * drawing the eyes in the correct state.<p>
- *
+ * <p>
  * This app supports both a front facing mode and a rear facing mode, which demonstrate different
  * API functionality trade-offs:<p>
- *
+ * <p>
  * Front facing mode uses the device's front facing camera to track one user, in a "selfie" fashion.
  * The settings for the face detector and its associated processing pipeline are set to optimize for
  * the single face case, where the face is relatively large.  These factors allow the face detector
  * to be faster and more responsive to quick motion.<p>
- *
+ * <p>
  * Rear facing mode uses the device's rear facing camera to track any number of faces.  The settings
  * for the face detector and its associated processing pipeline support finding multiple faces, and
  * attempt to find smaller faces in comparison to the front facing mode.  But since this requires
@@ -178,7 +178,7 @@ public final class GooglyEyesActivity extends AppCompatActivity {
     /**
      * Callback for the result from requesting permissions. This method is invoked for every call on
      * {@link #requestPermissions(String[], int)}.<p>
-     *
+     * <p>
      * <strong>Note:</strong> It is possible that the permissions request interaction with the user
      * is interrupted. In this case you will receive empty permissions and results arrays which
      * should be treated as a cancellation.<p>
@@ -404,5 +404,19 @@ public final class GooglyEyesActivity extends AppCompatActivity {
                 mCameraSource = null;
             }
         }
+    }
+
+    public void takePictureActionPerformed(View view) {
+        mCameraSource.takePicture(new CameraSource.ShutterCallback() {
+            @Override
+            public void onShutter() {
+                Toast.makeText(GooglyEyesActivity.this, "onShutter", Toast.LENGTH_SHORT).show();
+            }
+        }, new CameraSource.PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] bytes) {
+                Toast.makeText(GooglyEyesActivity.this, "onPictureTaken", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

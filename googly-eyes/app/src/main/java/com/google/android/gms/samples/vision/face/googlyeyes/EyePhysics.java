@@ -39,15 +39,15 @@ class EyePhysics {
     // The friction and gravity values below are set relative to a specific time period.  This
     // allows the simulation to run at the same rate, regardless of whether it is running on a slow
     // or fast device or if there are temporary performance variations on the device.
-    private final long TIME_PERIOD_MS = 1000;
+    private final long TIME_PERIOD_MS = 1;
 
     private final float FRICTION = 2.2f;
-    private final float GRAVITY = 40.0f;
+    private final float GRAVITY = 20.0f;
 
-    private final float BOUNCE_MULTIPLIER = 20.0f;
+    private final float BOUNCE_MULTIPLIER = 10.0f;
 
     // Allow slightly non-zero values to be considered to be zero, to converge to zero more quickly.
-    private final float ZERO_TOLERANCE = 0.001f;
+    private final float ZERO_TOLERANCE = 0.004f;
 
     private long mLastUpdateTimeMs = SystemClock.elapsedRealtime();
 

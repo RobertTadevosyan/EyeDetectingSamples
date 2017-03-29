@@ -28,6 +28,7 @@ import com.google.android.gms.vision.CameraSource;
 
 import java.io.IOException;
 
+@SuppressWarnings("MissingPermission")
 public class CameraSourcePreview extends ViewGroup {
     private static final String TAG = "CameraSourcePreview";
 

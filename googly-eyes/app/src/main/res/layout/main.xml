@@ -21,6 +21,13 @@
   </com.google.android.gms.samples.vision.face.googlyeyes.ui.camera.CameraSourcePreview>
 
   <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Take Picture"
+      android:onClick="takePictureActionPerformed"
+      android:layout_alignParentRight="true"
+      android:layout_alignParentBottom="true"/>
+  <Button
       android:id="@+id/flipButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
